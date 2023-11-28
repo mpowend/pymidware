@@ -1,0 +1,39 @@
+{
+	"url": "https://httpbin.org/post",
+	"headers": {
+		"Content-Type": "application/json",
+		"Accept": "application/json",
+		"timeout": "600000"
+	},
+	"params": {
+		"Parameters.param1": "customNameOfInputKey",
+		"Parameters.VeryNestedParam.param2": "param2"
+	},
+	"body": {
+		"ScenarioUniqueId": "123456789",
+		"Parameters": {
+			"param1": "",
+			"VeryNestedParam": {
+				"param2": ""
+			}
+		}
+	},
+	"response": {
+		"500": {
+			"Status_Code": "1",
+			"Description": "internal server error",
+			"HTTP_Code": "500"
+		},
+		"400": {
+			"Status_Code": "1",
+			"Description": "not authorized but the real api gives 400 for it. stupid",
+			"HTTP_Code": "401"
+		},
+		"200": {
+			"Status_Code": "0",
+			"Description": "done.",
+			"HTTP_Code": "200",
+			"success": "true"
+		}
+	}
+}
