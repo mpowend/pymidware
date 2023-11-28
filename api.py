@@ -20,7 +20,7 @@ def api_gateway(endpoint):
 	if endpoint not in endpoints:
 		return jsonify({"error": "endpoint not found"}), 404
 	requestJson = request.get_json(force=True)
-	endpointDetails = json.load(open("./endpoints/"+endpoint+".json", "r"))
+	endpointDetails = json.load(open("./endpoints/"+endpoint+".json", "r", encoding="utf-8-sig"))
 
 	headers = endpointDetails["headers"]
 	body = endpointDetails["body"]
@@ -42,13 +42,20 @@ def api_gateway(endpoint):
 	response = requests.post(endpointDetails["url"], headers=headers, json=endpointDetails["body"])
 
 	# check if response code is valid
+	return handleResponse(response, codes)
+
+def handleResponse(response, codes):
 	if str(response.status_code) not in codes:
 		if "default" in codes:
-			return jsonify(codes["default"]), codes["default"]["HTTP_Code"]
+			return jsonify(without_keys(codes["default"],['HTTP_Code'])), codes["default"]["HTTP_Code"]
 		return jsonify({"description": "error not described or unexpected"}), 500
+	if "conditional" in codes[str(response.status_code)]:
+		if response.json()["Rows"]["HTTP_Code"] in codes[codes["conditional"]]:
+			return handleResponse(response, codes[codes["conditional"]])
 	if codes[str(response.status_code)]["success"]:
-		return jsonify(response.json()), response.status_code
-	return codes[str(response.status_code)], codes[str(response.status_code)]["HTTP_Code"]
-
+		return jsonify(response.json()), codes[str(response.status_code)]["HTTP_Code"]
+	return without_keys(codes[str(response.status_code)],['HTTP_Code']), codes[str(response.status_code)]["HTTP_Code"]
+def without_keys(d, keys):
+    return {x: d[x] for x in d if x not in keys}
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=8485, threaded=True)
